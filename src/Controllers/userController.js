@@ -23,6 +23,10 @@ async function handleUserSignup(req, res) {
         return res.json("Username already exists");
     };
 
+    const result2=await User.findOne({"UserId":user.UserId});
+    if(result2){
+        return res.json("UserId already exists");
+    };
     if(!user.Password){
         return res.status(400).json("Please enter password");
     }
