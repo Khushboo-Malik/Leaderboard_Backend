@@ -1,69 +1,48 @@
-require("dotenv").config()
-
+require("dotenv").config();
 const User = require("../Models/userModel");
-
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 
-const axios = require("axios");
-
 //SignUp Function
 async function handleUserSignup(req, res) {
+    try {
+        const { UserId, Username, Password } = req.body;
 
-    const body = req.body;
-    const user = {
-
-        UserId:body.UserId,
-        Username: body.Username,
-        Password: body.Password,
-        
-    }
-    const result=await User.findOne({"Username":user.Username});
-    if(result){
-        return res.json("Username already exists");
-    };
-
-    const result2=await User.findOne({"UserId":user.UserId});
-    if(result2){
-        return res.json("UserId already exists");
-    };
-    if(!user.Password){
-        return res.status(400).json("Please enter password");
-    }
-    if(!user.UserId){
-        return res.status(400).json("Please enter ID");
-    }
-    if(!user.Username){
-        return res.status(400).json("Please enter name");
-    } 
-    
-    bcrypt.genSalt(saltRounds, (saltErr, salt) => {
-        if (saltErr) {
-            res.status(500).send("Couldn't generate salt");
-        } else {
-
-            bcrypt.hash(user.Password, salt, async (hashErr, hash) => {
-                if (hashErr) {
-                    res.status(500).send("Couldn't hash password");
-                } else {
-
-                    user.Password = hash;
-                    user.Salt = salt;
-
-                    try {
-                        const result = await User.create(user);
-                        console.log("finaluser:", result);
-                        return res.status(200).json("Signup Successfull!");
-
-                    } catch (dbError) {
-                        return res.status(500).json("Database error");
-                    }
-                }
-            });
+        // Check for missing fields
+        if (!UserId || !Username || !Password) {
+            return res.status(400).json({ message: "All fields are required" });
         }
-    })
-};
 
+        // Check if Username already exists
+        const existingUsername = await User.findOne({ Username });
+        if (existingUsername) {
+            return res.status(409).json({ message: "Username already exists" });
+        }
+
+        // Check if UserId already exists
+        const existingUserId = await User.findOne({ UserId });
+        if (existingUserId) {
+            return res.status(409).json({ message: "UserId already exists" });
+        }
+
+        // Hash password
+        const salt = await bcrypt.genSalt(saltRounds);
+        const hashedPassword = await bcrypt.hash(Password, salt);
+
+        // Create user
+        const newUser = await User.create({
+            UserId,
+            Username,
+            Password: hashedPassword,
+            Salt: salt,
+        });
+
+        return res.status(201).json({ message: "Signup successful!" });
+    } catch (error) {
+        console.error("Signup error:", error);
+        return res.status(500).json({ message: "Server error during signup" });
+    }
+}
 
 //Login Function
 
