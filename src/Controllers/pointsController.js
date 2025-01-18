@@ -44,14 +44,14 @@ async function claimPoints(req, res) {
 
 async function showRanks(req, res) {
     try {
-        const users = await User.find().sort({ Rank: 1 }).select("Username Rank");
+        const users = await User.find().sort({ Rank: 1 }).select("Username Rank Points");
 
         return res.status(200).json({
             message: "Ranks fetched successfully",
             users: users.map(user => ({
                 Username: user.Username,
                 Rank: user.Rank,
-                Points:user.Points
+                Points: user.Points
             })),
         });
     } catch (error) {

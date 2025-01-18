@@ -4,7 +4,7 @@ const mongoose=require("mongoose");
 const express = require("express");
 const { connectMongoDb } = require("./connection");
 const {handleUserSignup,handleUserLogin}=require("./src/Controllers/userController");
-const {claimPoints}=require("./src/Controllers/pointsController");
+const {claimPoints,showRanks}=require("./src/Controllers/pointsController");
 
 
 const app = express();
@@ -17,7 +17,10 @@ app.use(cookieParser());
 app.post("/signup",handleUserSignup);
 
 app.post("/login",handleUserLogin);
+
 app.post("/claimPoints",claimPoints);
+
+app.get("/showRanks",showRanks);
 
 connectMongoDb(process.env.MONGO_URL)
   .then(() => console.log("MongoDB Connected!"));
